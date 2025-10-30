@@ -1,0 +1,43 @@
+[package]
+name = "kingshare-api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kingshare-core = { path = "../core", features = ["axum"] }
+kingshare-domain = { path = "../domain" }
+kingshare-application = { path = "../application" }
+kingshare-infrastructure = { path = "../infrastructure" }
+
+# Web framework
+axum = { workspace = true }
+axum-extra = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+
+# WebSocket
+tokio-tungstenite = { workspace = true }
+futures-util = { workspace = true }
+dashmap = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Validation
+validator = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# UUID and time
+uuid = { workspace = true }
+chrono = { workspace = true }

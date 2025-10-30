@@ -1,0 +1,47 @@
+[package]
+name = "kingshare-infrastructure"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kingshare-core = { path = "../core" }
+kingshare-domain = { path = "../domain" }
+
+# Database
+sqlx = { workspace = true }
+sea-orm = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+async-trait = "0.1"
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Authentication
+jsonwebtoken = { workspace = true }
+argon2 = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# UUID and time
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+# File handling
+sha2 = "0.10"
+hex = "0.4"
+
+# HTTP client
+reqwest = { workspace = true }
+
+# WebSocket
+axum = { workspace = true }
+futures-util = { workspace = true }
+dashmap = { workspace = true }

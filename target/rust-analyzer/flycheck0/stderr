@@ -1,0 +1,317 @@
+   0.737651400s  INFO prepare_target{force=false package_id=kingshare-api v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\api) target="kingshare_api"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-api v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\api)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("kingshare_api", ["lib"], "D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\crates\\api\\src\\lib.rs", Edition2021) }
+   0.737726400s  INFO prepare_target{force=false package_id=kingshare-api v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\api) target="kingshare_api"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-api-595a4ea959c1184b\lib-kingshare_api`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   0.785422900s  INFO prepare_target{force=false package_id=kingshare-application v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\application) target="kingshare_application"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-application v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\application)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("kingshare_application", ["lib"], "D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\crates\\application\\src\\lib.rs", Edition2021) }
+   0.785470500s  INFO prepare_target{force=false package_id=kingshare-application v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\application) target="kingshare_application"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-application-ce393201d2969c06\lib-kingshare_application`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_path
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_filter_source_repo
+  15: <unknown>
+  16: <unknown>
+  17: git_midx_writer_dump
+  18: git_filter_source_repo
+  19: git_midx_writer_dump
+  20: BaseThreadInitThunk
+  21: RtlUserThreadStart
+   7.587020800s  INFO prepare_target{force=false package_id=kingshare-infrastructure v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\infrastructure) target="kingshare_infrastructure"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-infrastructure v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\infrastructure)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("kingshare_infrastructure", ["lib"], "D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\crates\\infrastructure\\src\\lib.rs", Edition2021) }
+   7.587073900s  INFO prepare_target{force=false package_id=kingshare-infrastructure v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\infrastructure) target="kingshare_infrastructure"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-infrastructure-3412cb005acf6a55\lib-kingshare_infrastructure`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_path
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_filter_source_repo
+  15: <unknown>
+  16: <unknown>
+  17: git_midx_writer_dump
+  18: git_filter_source_repo
+  19: git_midx_writer_dump
+  20: BaseThreadInitThunk
+  21: RtlUserThreadStart
+   8.554687300s  INFO prepare_target{force=false package_id=kingshare-api v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\api) target="kingshare_api"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-api v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\api)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("kingshare_api", ["lib"], "D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\crates\\api\\src\\lib.rs", Edition2021) }
+   8.554724500s  INFO prepare_target{force=false package_id=kingshare-api v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\api) target="kingshare_api"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-api-ec43b9cd97c16a9c\test-lib-kingshare_api`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   8.556902400s  INFO prepare_target{force=false package_id=kingshare-application v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\application) target="kingshare_application"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-application v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\application)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("kingshare_application", ["lib"], "D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\crates\\application\\src\\lib.rs", Edition2021) }
+   8.556935500s  INFO prepare_target{force=false package_id=kingshare-application v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\application) target="kingshare_application"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-application-b71ccb831703695f\test-lib-kingshare_application`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   8.570858500s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="server"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend)/Check { test: false }/TargetInner { name: "server", doc: true, ..: with_path("D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\src\\main.rs", Edition2021) }
+   8.570898900s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="server"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-backend-52b7681317cf26d3\bin-server`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   8.721892500s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="server"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend)/Check { test: true }/TargetInner { name: "server", doc: true, ..: with_path("D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\src\\main.rs", Edition2021) }
+   8.721930800s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="server"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-backend-b582f1d0fb550196\test-bin-server`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   8.736574200s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="integration_test"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend)/Check { test: true }/TargetInner { kind: "test", name: "integration_test", benched: false, ..: with_path("D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\tests\\integration_test.rs", Edition2021) }
+   8.736614500s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="integration_test"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-backend-b9b2c8786b5593ba\test-integration-test-integration_test`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   8.738829400s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="demo"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend)/Check { test: false }/TargetInner { kind: "example", name: "demo", tested: false, benched: false, ..: with_path("D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\examples\\demo.rs", Edition2021) }
+   8.738865300s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="demo"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-backend-69f07243577f958e\example-demo`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   8.740480800s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="full_test"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend)/Check { test: false }/TargetInner { kind: "example", name: "full_test", tested: false, benched: false, ..: with_path("D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\examples\\full_test.rs", Edition2021) }
+   8.740506400s  INFO prepare_target{force=false package_id=kingshare-backend v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend) target="full_test"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-backend-a8d572e20ac948e8\example-full_test`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   8.813064900s  INFO prepare_target{force=false package_id=kingshare-infrastructure v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\infrastructure) target="kingshare_infrastructure"}: cargo::core::compiler::fingerprint: fingerprint error for kingshare-infrastructure v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\infrastructure)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("kingshare_infrastructure", ["lib"], "D:\\Projects\\Christ Embassy\\Qubators\\New folder\\qubators-kingshare-backend\\crates\\infrastructure\\src\\lib.rs", Edition2021) }
+   8.813116800s  INFO prepare_target{force=false package_id=kingshare-infrastructure v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\infrastructure) target="kingshare_infrastructure"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\target\debug\.fingerprint\kingshare-infrastructure-c4c6b48976827089\test-lib-kingshare_infrastructure`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+    Checking kingshare-infrastructure v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\infrastructure)
+    Checking kingshare-application v0.1.0 (D:\Projects\Christ Embassy\Qubators\New folder\qubators-kingshare-backend\crates\application)
+error: could not compile `kingshare-application` (lib) due to 2 previous errors; 5 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `kingshare-application` (lib test) due to 2 previous errors; 5 warnings emitted
+error: could not compile `kingshare-infrastructure` (lib) due to 35 previous errors; 4 warnings emitted
+error: could not compile `kingshare-infrastructure` (lib test) due to 35 previous errors; 4 warnings emitted

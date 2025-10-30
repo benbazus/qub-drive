@@ -1,0 +1,22 @@
+[package]
+name = "kingshare-core"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+axum = ["dep:axum"]
+
+[dependencies]
+axum = { workspace = true, optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+config = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+sqlx = { workspace = true }
+jsonwebtoken = { workspace = true }
+reqwest = { workspace = true }

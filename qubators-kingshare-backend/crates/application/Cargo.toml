@@ -1,0 +1,30 @@
+[package]
+name = "kingshare-application"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kingshare-core = { path = "../core" }
+kingshare-domain = { path = "../domain" }
+
+# Async
+tokio = { workspace = true }
+async-trait = "0.1"
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Validation
+validator = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# UUID and time
+uuid = { workspace = true }
+chrono = { workspace = true }
