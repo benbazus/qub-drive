@@ -303,4 +303,3 @@ tramp
 # AI Assistant directories
 .agent/
 .claude/
-.kiro/
