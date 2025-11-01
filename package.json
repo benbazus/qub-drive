@@ -1,0 +1,40 @@
+{
+  "name": "kingshare-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KingShare enterprise monorepo with backend, web client, mobile app, and server",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\" \"npm run dev:backend\"",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:mobile": "npm run start --workspace=apps/mobile",
+    "dev:server": "npm run dev --workspace=apps/server",
+    "dev:backend": "cd apps/backend && cargo run",
+    "build": "npm run build --workspaces --if-present",
+    "build:web": "npm run build --workspace=apps/web",
+    "build:mobile": "npm run build --workspace=apps/mobile",
+    "build:server": "npm run build --workspace=apps/server",
+    "build:backend": "cd apps/backend && cargo build --release",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && cd apps/backend && cargo clean",
+    "install:all": "npm install && cd apps/backend && cargo fetch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "concurrently": "^8.2.2",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "author": "Qubators Team",
+  "license": "MIT"
+}

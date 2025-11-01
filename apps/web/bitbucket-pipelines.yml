@@ -1,0 +1,27 @@
+pipelines:
+  branches: 
+    master:
+      - step:
+          deployment: production
+          name: Build and Deploy
+          image: node:18
+          caches:
+            - node
+            - composer
+          script: 
+            - npm install -g pnpm
+            - pnpm install --frozen-lockfile
+            - pnpm run build
+            - pipe: atlassian/rsync-deploy:0.4.1
+              variables:
+                USER: $USER
+                SERVER: $SERVER
+                REMOTE_PATH: '/var/www/qubators/qubators-kingshare-client/'
+                LOCAL_PATH: 'dist'
+                EXTRA_ARGS: >-
+                  --exclude=.git
+                  --exclude=bitbucket-pipelines.yml
+                  --exclude=.bitbucket
+                  --exclude=composer.*
+                  --exclude=node_modules
+                  --exclude=dist/.htaccess

@@ -1,0 +1,2300 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  USER
+  GUEST
+}
+
+enum Permission {
+  USER_CREATE
+  USER_READ
+  USER_UPDATE
+  USER_DELETE
+  USER_MANAGE_ROLES
+  ADMIN_ACCESS
+  SYSTEM_CONFIG
+  AUDIT_VIEW
+  REPORTS_VIEW
+  REPORTS_CREATE
+}
+
+enum OtpType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  REGISTRATION
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  type      OtpType
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  userId    String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([type])
+  @@index([expiresAt])
+  @@map("otp_codes")
+}
+
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  password    String
+  firstName   String
+  lastName    String
+  role        UserRole     @default(USER)
+  permissions Permission[]
+  isActive    Boolean      @default(true)
+  isVerified  Boolean      @default(false)
+  lastLoginAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  metadata    Json?
+
+  // Relations
+  sessions       Session[]
+  securityEvents SecurityEvent[]
+
+  passwordHash String?
+  name         String?
+  username     String? @unique
+  avatar       String? @default("https://example.com/default-avatar.png")
+  phoneNumber  String? @unique
+
+  isDeleted Boolean @default(false)
+
+  // Security fields
+  passwordResetToken     String?
+  passwordResetExpires   DateTime?
+  emailVerificationToken String?
+  emailVerifiedAt        DateTime?
+  twoFactorSecret        String?
+  twoFactorEnabled       Boolean   @default(false)
+  twoFactorRecoveryCodes String[]  @default([])
+  lastPasswordChange     DateTime?
+  passwordHistory        String[]  @default([]) // Store hashes of last 5 passwords
+
+  // Account status
+
+  isEmailVerified Boolean   @default(false)
+  isLocked        Boolean   @default(false)
+  lockReason      String?
+  lockedAt        DateTime?
+  lockedUntil     DateTime?
+  suspendedAt     DateTime?
+  suspendedReason String?
+
+  twoFactorEnabledAt  DateTime?
+  twoFactorDisabledAt DateTime?
+
+  // Login tracking
+
+  lastLoginIp         String?
+  lastLoginLocation   String?
+  lastFailedLoginAt   DateTime?
+  failedLoginAttempts Int       @default(0)
+
+  // Storage & limits
+  storageUsed  BigInt @default(0)
+  storageLimit BigInt @default(10737418240) // 10GB
+  storagePath  String @default("/var/lib/filestore")
+  totalFiles   Int    @default(0)
+
+  // User preferences
+  registrationStep Int @default(1)
+
+  timezone String? @default("UTC")
+  language String? @default("en")
+  theme    String? @default("light")
+
+  // Timestamps
+
+  deletedAt DateTime? // Soft delete
+
+  // Relations
+  roles UserRole[]
+
+  otpCodes            OtpCode[]
+  passwordResetTokens PasswordResetToken[]
+  twoFactorTokens     TwoFactorToken[]
+  loginHistory        LoginHistory[]
+
+  threatDetections ThreatDetection[]
+  encryptionKey    UserEncryptionKey?
+
+  // File relations
+  files         File[]
+  ownedFiles    File[]       @relation("FileOwner")
+  createdFiles  File[]       @relation("FileCreator")
+  modifiedFiles File[]       @relation("FileModifier")
+  sharedFiles   SharedFile[]
+  shareUsers    ShareUser[]  @relation("UserSharedFiles")
+
+  // Activity relations
+  activities     Activity[]
+  fileActivities FileActivity[]
+  activityLogs   ActivityLog[]
+  auditLogs      AuditLog[]
+
+  // Collaboration relations
+  collaborations        Collaborator[]
+  documentCollaborators DocumentCollaborator[]
+  comments              Comment[]
+  commentReplies        CommentReply[]
+  notifications         Notification[]
+
+  // Document relations
+  documents     Document[]
+  shareLinks    ShareLink[]
+  subscriptions Subscription[]
+  fileLinks     FileLink[]
+
+  userMetrics    UserMetrics[]
+  FileAccessLog  FileAccessLog[]
+  ShareAccessLog ShareAccessLog[]
+  FileVersions   FileVersion[]
+  ShareComment   ShareComment[]
+
+  tokenMetadata TokenMetadata[]
+  apiKeys       ApiKey[]
+  oneTimeTokens OneTimeToken[]
+
+  sharedDocuments Document[] @relation("SharedDocuments")
+
+  compressionJobs CompressionJob[]
+  RevokedToken    RevokedToken[]
+
+  filePermissions FilePermissionModel[]
+
+  // Relations
+  ownedDocuments        Document[]          @relation("DocumentOwner")
+  documentVersions      DocumentVersion[]
+  pendingInvitations    PendingInvitation[]
+  documentAccess        DocumentAccess[]
+  invitedDocumentAccess DocumentAccess[]    @relation("DocumentAccessInviter")
+
+  // Add to User model:
+  approvalRequests  ShareApproval[] @relation("ApprovalRequester")
+  approvalResponses ShareApproval[] @relation("ApprovalApprover")
+  downloads         FileDownload[]  @relation("UserDownloads")
+
+  // Spreadsheet relations
+  ownedSpreadsheets          Spreadsheet[]        @relation
+  spreadsheetAccess          SpreadsheetAccess[]
+  createdSpreadsheetVersions SpreadsheetVersion[]
+
+  // User settings relation
+  userSettings UserSettings?
+
+  @@index([email])
+  @@index([username])
+  @@index([isActive, isEmailVerified])
+  @@index([lastLoginAt])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  ipAddress String?
+  userAgent String?
+  isActive  Boolean  @default(true)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Session {
+  id             String   @id @default(uuid())
+  userId         String
+  refreshToken   String   @unique
+  deviceInfo     Json
+  isActive       Boolean  @default(true)
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  lastAccessedAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model LoginHistory {
+  id            String        @id @default(cuid())
+  userId        String
+  ipAddress     String?
+  userAgent     String?
+  deviceInfo    Json? // Browser, OS, device type
+  geolocation   Json? // Country, city, coordinates
+  loginMethod   LoginMethod   @default(PASSWORD)
+  success       Boolean
+  failureReason String?
+  sessionId     String?
+  duration      Int? // Session duration in minutes
+  loggedOutAt   DateTime?
+  logoutReason  LogoutReason?
+  createdAt     DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([success])
+  @@map("login_history")
+}
+
+model File {
+  id           String    @id @default(uuid())
+  fileName     String
+  originalName String?
+  fileType     FileType? @default(FILE)
+  mimeType     String?
+  type         String?
+  fileSize     BigInt?
+  itemCount    Int? // For folders
+  filePath     String
+  parentId     String?
+  location     String?
+  extension    String?
+  isFolder     Boolean   @default(false)
+  isDocument   Boolean   @default(false)
+  // File metadata
+  checksum     String? // SHA256 hash
+  version      Int       @default(1)
+  tags         String[]  @default([])
+  description  String?
+
+  hash                String? // SHA256 hash
+  // Security & encryption
+  isEncrypted         Boolean   @default(false)
+  encryptionAlgorithm String?
+  encryptionKeyId     String?
+  encryptedAt         DateTime?
+
+  // Compression
+  isCompressed         Boolean   @default(false)
+  compressionAlgorithm String?
+  originalSize         BigInt?
+  compressedSize       BigInt?
+  compressionRatio     Float?
+  compressedAt         DateTime?
+
+  // Virus scanning
+  virusScanned      Boolean          @default(false)
+  virusScanResult   VirusScanResult?
+  virusScannedAt    DateTime?
+  quarantined       Boolean          @default(false)
+  quarantinedReason String?
+
+  // Content analysis
+  contentAnalyzed  Boolean @default(false)
+  contentType      String? // text, image, video, etc.
+  contentMetadata  Json? // OCR text, image metadata, etc.
+  thumbnailPath    String?
+  previewPath      String?
+  currentVersionId String? @unique
+  // Status flags
+  isTemporary      Boolean @default(false)
+  isDeleted        Boolean @default(false)
+  isStarred        Boolean @default(false)
+  isShared         Boolean @default(false)
+  isLocked         Boolean @default(false)
+  isPublic         Boolean @default(false)
+  isActive         Boolean @default(true)
+  archived         Boolean @default(false)
+
+  // Access tracking
+  downloadCount  Int       @default(0)
+  viewCount      Int       @default(0)
+  shareCount     Int       @default(0)
+  accessCount    Int       @default(0)
+  lastAccessedAt DateTime?
+
+  // User relations
+  userId     String?
+  ownerId    String?
+  createdBy  String?
+  modifiedBy String?
+
+  // Upload tracking
+  uploadId        String? @unique
+  chunksReceived  Int?    @default(0)
+  uploadProgress  Float?  @default(0)
+  uploadCompleted Boolean @default(false)
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  user     User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  owner    User? @relation("FileOwner", fields: [ownerId], references: [id])
+  creator  User? @relation("FileCreator", fields: [createdBy], references: [id])
+  modifier User? @relation("FileModifier", fields: [modifiedBy], references: [id])
+
+  parent   File?  @relation("FileHierarchy", fields: [parentId], references: [id])
+  children File[] @relation("FileHierarchy")
+
+  versions       FileVersion[]
+  sharedFiles    SharedFile[]
+  activities     FileActivity[]
+  links          FileLink[]
+  downloadTokens DownloadToken[]
+  comments       Comment[]
+  collaborators  Collaborator[]
+  permissions    FilePermissionModel[] @relation("FileModelPermissions")
+  categories     FileFileCategory[]
+  accessLogs     FileAccessLog[]
+  securityScans  FileSecurity[]
+  activityLogs   ActivityLog[]
+  FileTag        FileTag[]
+  ShareAccessLog ShareAccessLog[]
+  ShareComment   ShareComment[]
+  downloads      FileDownload[]        @relation("FileDownloads")
+  Transfer       Transfer?             @relation(fields: [transferId], references: [id])
+  transferId     String?
+
+  @@index([userId, fileType])
+  @@index([parentId])
+  @@index([mimeType])
+  @@index([isDeleted])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("files")
+}
+
+model FileDownload {
+  id                String           @id @default(uuid())
+  fileId            String
+  userId            String?
+  downloadToken     String?          @unique
+  fileName          String
+  fileSize          BigInt?
+  mimeType          String?
+  downloadType      DownloadType     @default(DIRECT)
+  downloadFormat    String? // original, compressed, converted
+  compressionType   CompressionType? @default(NONE)
+  compressionLevel  Int?             @default(0)
+  status            DownloadStatus   @default(PENDING)
+  progress          Float?           @default(0) // 0-100
+  downloadUrl       String?
+  expiresAt         DateTime?
+  ipAddress         String?
+  userAgent         String?
+  country           String?
+  city              String?
+  deviceType        DeviceType?      @default(UNKNOWN)
+  bandwidth         Float? // KB/s
+  downloadSpeed     Float? // KB/s
+  bytesDownloaded   BigInt?          @default(0)
+  totalBytes        BigInt?
+  resumable         Boolean          @default(true)
+  rangeStart        BigInt?
+  rangeEnd          BigInt?
+  chunks            Int?             @default(1)
+  failureReason     String?
+  retryCount        Int              @default(0)
+  maxRetries        Int              @default(3)
+  downloadPath      String? // Server path for prepared downloads
+  metadata          Json? // Additional download metadata
+  isPublic          Boolean          @default(false)
+  allowAnonymous    Boolean          @default(false)
+  passwordProtected Boolean          @default(false)
+
+  password       String?
+  accessCount    Int       @default(0)
+  lastAccessedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  completedAt    DateTime?
+  cancelledAt    DateTime?
+
+  // Relations
+  file File  @relation("FileDownloads", fields: [fileId], references: [id], onDelete: Cascade)
+  user User? @relation("UserDownloads", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([fileId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([downloadToken])
+  @@index([expiresAt])
+  @@map("file_downloads")
+}
+
+enum DownloadType {
+  DIRECT // Direct file download
+  ARCHIVE // Folder compressed as archive
+  CONVERTED // File format conversion
+  STREAM // Streaming download
+}
+
+enum DownloadStatus {
+  PENDING // Download request created
+  PREPARING // Server preparing download
+  READY // Ready to download
+  DOWNLOADING // Download in progress
+  COMPLETED // Successfully completed
+  FAILED // Download failed
+  EXPIRED // Download link expired
+  CANCELLED // User cancelled
+}
+
+enum CompressionType {
+  NONE
+  ZIP
+  GZIP
+  TAR
+  SEVEN_ZIP
+}
+
+enum DeviceType {
+  DESKTOP
+  MOBILE
+  TABLET
+  UNKNOWN
+}
+
+model userPreferences {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now())
+}
+
+model UserSettings {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  // Profile settings
+  displayName String?
+  bio         String?
+  company     String?
+  jobTitle    String?
+  location    String?
+  website     String?
+  phoneNumber String?
+
+  // Appearance preferences
+  theme           String  @default("light") // light, dark, system
+  language        String  @default("en")
+  timezone        String  @default("UTC")
+  dateFormat      String  @default("MM/DD/YYYY")
+  timeFormat      String  @default("12h") // 12h, 24h
+  compactMode     Boolean @default(false)
+  fontSize        String  @default("medium") // small, medium, large
+  sidebarExpanded Boolean @default(true)
+
+  // Notification preferences
+  emailNotifications     Boolean @default(true)
+  pushNotifications      Boolean @default(true)
+  desktopNotifications   Boolean @default(true)
+  notifyOnFileShared     Boolean @default(true)
+  notifyOnFileCommented  Boolean @default(true)
+  notifyOnFileModified   Boolean @default(true)
+  notifyOnStorageWarning Boolean @default(true)
+  notifyOnSecurityAlerts Boolean @default(true)
+  digestFrequency        String  @default("daily") // instant, daily, weekly, none
+  emailDigestTime        String  @default("09:00") // HH:mm format
+
+  // Privacy settings
+  profileVisibility   String  @default("private") // public, private, team
+  showEmail           Boolean @default(false)
+  showPhoneNumber     Boolean @default(false)
+  showLastLogin       Boolean @default(false)
+  allowMessages       Boolean @default(true)
+  allowSearchIndexing Boolean @default(true)
+  shareActivityStatus Boolean @default(true)
+
+  // File & Storage preferences
+  defaultFileView      String  @default("grid") // grid, list
+  defaultSortBy        String  @default("modified") // name, modified, size, type
+  defaultSortOrder     String  @default("desc") // asc, desc
+  autoSaveInterval     Int     @default(30) // seconds
+  enableFileVersioning Boolean @default(true)
+  confirmBeforeDelete  Boolean @default(true)
+  showHiddenFiles      Boolean @default(false)
+  thumbnailQuality     String  @default("medium") // low, medium, high
+  defaultShareExpiry   Int     @default(30) // days
+  autoOrganizeFiles    Boolean @default(false)
+
+  // Security preferences
+  sessionTimeout        Int     @default(480) // minutes
+  requirePasswordChange Boolean @default(false)
+  enableActivityLog     Boolean @default(true)
+  enableLoginAlerts     Boolean @default(true)
+  trustedDevices        Json?   @default("[]") // Array of device IDs
+  ipWhitelist           Json?   @default("[]") // Array of IP addresses
+  enableBiometric       Boolean @default(false)
+
+  // Accessibility settings
+  highContrast          Boolean @default(false)
+  screenReaderOptimized Boolean @default(false)
+  keyboardShortcuts     Boolean @default(true)
+  reducedMotion         Boolean @default(false)
+  focusIndicators       Boolean @default(true)
+
+  // Advanced preferences
+  enableBetaFeatures Boolean @default(false)
+  enableAnalytics    Boolean @default(true)
+  enableCrashReports Boolean @default(true)
+  developerMode      Boolean @default(false)
+  customCss          String?
+  apiAccessEnabled   Boolean @default(false)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_settings")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model Document {
+  id      String @id @default(cuid())
+  title   String
+  content String @db.Text
+
+  pageFormat String   @default("A4")
+  marginSize String   @default("normal")
+  fontSize   Int      @default(16)
+  fontFamily String   @default("inherit")
+  isPublic   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  documentId String?
+
+  lastEditAt DateTime @default(now())
+
+  ownerId String
+  owner   User   @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  activities         Activity[]
+  pendingInvitations PendingInvitation[]
+
+  //owner         User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  collaborators  DocumentCollaborator[]
+  documentAccess DocumentAccess[]
+  comments       Comment[]
+  shareLinks     ShareLink[]
+  versions       DocumentVersion[]
+
+  sharedWith User[] @relation("SharedDocuments")
+
+  compressionJob   CompressionJob? @relation(fields: [compressionJobId], references: [id])
+  compressionJobId String?         @unique
+  lastSaved        DateTime        @default(now())
+  User             User?           @relation(fields: [userId], references: [id])
+  userId           String?
+
+  @@map("documents")
+}
+
+model SystemResource {
+  id           String   @id @default(uuid())
+  uptime       Float // Percentage (0-100)
+  totalStorage BigInt // Bytes
+  usedStorage  BigInt // Bytes
+  cpuUsage     Float // Percentage (0-100)
+  memoryUsage  Float // Percentage (0-100)
+  networkIO    Float // Percentage (0-100)
+  createdAt    DateTime @default(now())
+}
+
+model RevokedToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  tokenType String? // 'ACCESS' | 'REFRESH'
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  reason    String?
+  revokedAt DateTime  @default(now())
+  expiresAt DateTime?
+}
+
+model CompressionJob {
+  id          String    @id
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  type        String // 'compress' | 'decompress'
+  status      String // 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'PAUSED'
+  sourceFiles String[] // JSON array of file paths
+  outputPath  String
+  options     Json // CompressionOptions or DecompressionOptions
+  progress    Json // CompressionProgress or DecompressionProgress
+  result      Json? // CompressionResult or DecompressionResult
+  error       String?
+  createdAt   DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  priority    String // 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
+  document    Document? @relation
+}
+
+model DocumentCollaborator {
+  id         String         @id @default(cuid())
+  documentId String
+  userId     String
+  permission FilePermission @default(VIEW)
+  invitedAt  DateTime       @default(now())
+  acceptedAt DateTime?
+  isOnline   Boolean        @default(false)
+  lastSeenAt DateTime?
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, userId])
+  @@map("document_collaborators")
+}
+
+model DocumentAccess {
+  id         String         @id @default(cuid())
+  documentId String
+  userId     String
+  permission FilePermission @default(VIEW)
+  invitedBy  String
+  invitedAt  DateTime       @default(now())
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+  isActive   Boolean        @default(true)
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inviter  User     @relation("DocumentAccessInviter", fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, userId])
+  @@map("document_access")
+}
+
+model DocumentVersion {
+  id            String   @id @default(cuid())
+  documentId    String
+  content       String   @db.Text
+  versionNumber Int
+  createdAt     DateTime @default(now())
+  authorId      String?
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  User     User?    @relation(fields: [userId], references: [id])
+  userId   String?
+
+  @@unique([documentId, versionNumber])
+  @@map("document_versions")
+}
+
+model ShareLink {
+  id              String           @id @default(cuid())
+  documentId      String
+  customMessage   String?
+  createdById     String
+  token           String           @unique
+  permission      FilePermission   @default(VIEW)
+  expiresAt       DateTime?
+  isActive        Boolean          @default(true)
+  accessCount     Int              @default(0)
+  maxAccess       Int?
+  allowDownload   Boolean          @default(true)
+  allowPrint      Boolean          @default(true)
+  watermark       Boolean          @default(true)
+  requireEmail    Boolean          @default(true)
+  allowComments   Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  shareAccessLogs ShareAccessLog[]
+  access          LinkAccess       @default(RESTRICTED)
+
+  lastAccessedAt DateTime?
+
+  document  Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdBy User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@map("share_links")
+}
+
+model KeyRotationPolicy {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now())
+}
+
+model DownloadToken {
+  id        String   @id @default(uuid())
+  fileId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@map("download_tokens")
+}
+
+model FileTag {
+  id     String @id @default(uuid())
+  fileId String
+  tag    String
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, tag])
+  @@map("file_tags")
+}
+
+model FileCategory {
+  id    String  @id @default(cuid())
+  name  String  @unique
+  color String?
+
+  files FileFileCategory[]
+
+  @@map("file_categories")
+}
+
+model FileFileCategory {
+  fileId     String
+  categoryId String
+
+  file     File         @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  category FileCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([fileId, categoryId])
+  @@map("file_file_categories")
+}
+
+model DeviceThreat {
+  id          String   @id @default(uuid())
+  deviceId    String?
+  threatType  String?
+  severity    String?
+  confidence  String?
+  description String?
+  indicators  String?
+  mitigated   String?
+  detectedAt  DateTime
+}
+
+model Device {
+  id String @id @default(uuid())
+}
+
+model PerformanceMetric {
+  id           String   @id @default(uuid())
+  endpoint     String?
+  method       String?
+  responseTime String?
+  statusCode   String?
+  requestSize  String?
+  responseSize String?
+  userAgent    String?
+  ipAddress    String?
+  timestamp    DateTime @default(now())
+  createdAt    DateTime @default(now())
+}
+
+model Plan {
+  id            String         @id @default(uuid())
+  name          String
+  description   String
+  monthlyPrice  Float
+  price         Float
+  yearlyPrice   Float
+  storageLimit  BigInt?        @default(0)
+  features      Json
+  recommended   Boolean        @default(false)
+  active        Boolean        @default(true)
+  subscriptions Subscription[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("plans")
+}
+
+model Subscription {
+  id           String   @id @default(uuid())
+  userId       String
+  planId       String
+  status       String
+  storageLimit BigInt   @default(0)
+  expiresAt    DateTime
+  billingCycle String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  plan Plan @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+
+// ==================== SYSTEM CONFIGURATION ====================
+
+model SystemSettings {
+  id Int @id @default(1)
+
+  // Storage & File Management
+  defaultMaxStorage            BigInt   @default(10737418240)
+  maxFileSize                  BigInt   @default(104857600)
+  allowedFileTypes             String[] @default(["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "rtf", "csv", "zip", "rar", "7z", "jpg", "jpeg", "png", "gif", "bmp", "svg", "mp4", "avi", "mov", "wmv", "flv", "webm", "mp3", "wav", "aac", "flac", "ogg"])
+  defaultStoragePath           String   @default("./filestore")
+  storageQuotaWarningThreshold Int      @default(80)
+  enableFileVersioning         Boolean  @default(true)
+  maxVersionsPerFile           Int      @default(10)
+  autoDeleteOldVersions        Boolean  @default(true)
+  fileRetentionDays            Int      @default(365)
+  enableFileCompression        Boolean  @default(true)
+  compressionLevel             Int      @default(6)
+  enableDuplicateDetection     Boolean  @default(true)
+
+  enableAutoBackup Boolean @default(true)
+
+  // Email settings
+  SMTP_HOST      String?
+  SMTP_PORT      String?
+  SMTP_USER      String?
+  SMTP_PASS      String?
+  SMTP_SECURE    Boolean @default(false)
+  SMTP_FROM      String?
+  SMTP_FROM_NAME String?
+  COMPANY_NAME   String?
+  SUPPORT_EMAIL  String?
+
+  // Security & Access Control
+  enableTwoFactorAuth         Boolean  @default(true)
+  passwordMinLength           Int      @default(8)
+  passwordRequireSpecialChars Boolean  @default(true)
+  sessionTimeoutMinutes       Int      @default(480)
+  maxLoginAttempts            Int      @default(5)
+  lockoutDurationMinutes      Int      @default(15)
+  enableIpWhitelist           Boolean  @default(false)
+  allowedIpRanges             String[] @default([])
+  enableEncryptionAtRest      Boolean  @default(true)
+  encryptionAlgorithm         String   @default("AES-256-GCM")
+  enableAuditLogging          Boolean  @default(true)
+  enableThreatDetection       Boolean  @default(true)
+  enableSecurityScanning      Boolean  @default(true)
+  securityScanFrequency       String   @default("daily")
+
+  // Virus & Malware Protection
+  enableVirusScanning     Boolean @default(true)
+  virusScanningProvider   String  @default("clamav")
+  quarantineInfectedFiles Boolean @default(true)
+  virusScanOnUpload       Boolean @default(true)
+  virusScanSchedule       String  @default("daily")
+
+  // Content Analysis & AI
+  enableContentModeration   Boolean @default(false)
+  contentModerationProvider String  @default("azure")
+  enableOcrProcessing       Boolean @default(false)
+  ocrProvider               String  @default("tesseract")
+  enableThumbnailGeneration Boolean @default(true)
+  thumbnailQuality          Int     @default(85)
+  enableWatermarking        Boolean @default(false)
+  watermarkText             String  @default("")
+  watermarkOpacity          Int     @default(50)
+
+  // Sharing & Collaboration
+  enablePublicSharing            Boolean  @default(true)
+  enablePasswordProtectedSharing Boolean  @default(true)
+  defaultShareExpiration         Int      @default(30)
+  maxShareExpiration             Int      @default(365)
+  enableDownloadTracking         Boolean  @default(true)
+  enableCollaborativeEditing     Boolean  @default(true)
+  maxCollaboratorsPerFile        Int      @default(50)
+  enableComments                 Boolean  @default(true)
+  enableFilePreview              Boolean  @default(true)
+  previewableFileTypes           String[] @default(["pdf", "txt", "jpg", "jpeg", "png", "gif", "mp4"])
+
+  // Advanced Security Settings
+  enableSsoIntegration  Boolean @default(false)
+  ssoProvider           String  @default("saml")
+  ssoMetadataUrl        String  @default("")
+  enableLdapIntegration Boolean @default(false)
+  ldapServerUrl         String  @default("")
+  ldapBaseDn            String  @default("")
+  ldapBindDn            String  @default("")
+  ldapBindPassword      String  @default("")
+
+  // Monitoring & Analytics
+  enableAnalytics          Boolean  @default(true)
+  analyticsProvider        String   @default("internal")
+  enableUsageReporting     Boolean  @default(true)
+  reportingFrequency       String   @default("monthly")
+  enableExportReports      Boolean  @default(true)
+  retentionDays            Int      @default(365)
+  enableGeolocation        Boolean  @default(true)
+  enableRealTimeMonitoring Boolean  @default(true)
+  enableAlertSystem        Boolean  @default(true)
+  alertThresholds          Json     @default("{\"diskUsage\": 90, \"cpuUsage\": 80, \"memoryUsage\": 85, \"errorRate\": 5}")
+  alertRecipients          String[] @default([])
+
+  // Compliance & Legal
+  enableGdprCompliance       Boolean  @default(true)
+  dataRetentionPolicyDays    Int      @default(2555)
+  enableRightToBeForgotten   Boolean  @default(true)
+  enableDataPortability      Boolean  @default(true)
+  complianceReportingEnabled Boolean  @default(true)
+  enableDataClassification   Boolean  @default(false)
+  dataClassificationLevels   String[] @default(["public", "internal", "confidential", "restricted"])
+
+  // System Information
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastBackupAt      DateTime?
+  systemVersion     String    @default("1.0.0")
+  licenseType       String    @default("enterprise")
+  licenseExpiration DateTime  @default(dbgenerated("NOW() + INTERVAL '1 year'"))
+
+  @@map("system_settings")
+}
+
+model fileEncryption {
+  id String @id @default(cuid())
+
+  encryptionKeyId String?
+  algorithm       String?
+  iv              String?
+  authTag         String?
+  salt            String?
+  originalSize    Int?
+  encryptedSize   Int?
+  checksum        String?
+  encryptedAt     DateTime
+  encryptedBy     String?
+}
+
+model LoginAttempt {
+  id          String    @id @default(uuid())
+  email       String
+  count       Int       @default(1)
+  lastAttempt DateTime  @default(now())
+  lockedUntil DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([email])
+  @@map("login_attempts")
+}
+
+
+
+enum RegistrationStep {
+  EMAIL_PENDING
+  OTP_PENDING
+  DETAILS_PENDING
+  COMPLETED
+}
+
+model Otp {
+  id          String   @id @default(uuid())
+  email       String
+  code        String
+  type        OtpType
+  expiresAt   DateTime
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  isUsed      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  metadata    Json?
+
+  @@map("otps")
+}
+
+model RegistrationFlow {
+  id        String           @id @default(uuid())
+  email     String           @unique
+  step      RegistrationStep @default(EMAIL_PENDING)
+  tempData  Json? // Store temporary registration data
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("registration_flows")
+}
+
+model PasswordResetFlow {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_flows")
+}
+
+model SecurityEvent {
+  id           String            @id @default(cuid())
+  eventType    SecurityEventType @default(LOGIN_SUCCESS)
+  severity     SecuritySeverity  @default(MEDIUM)
+  userId       String?
+  ipAddress    String?
+  userAgent    String?
+  resource     String? // File, folder, or system resource affected
+  resourceId   String?
+  email        String?
+  success      Boolean?
+  action       String            @default("UNKNOWN")
+  outcome      SecurityOutcome   @default(SUCCESS)
+  riskScore    Int?              @default(0) // 0-100 risk scoring
+  geolocation  Json? // Country, city, lat/lng
+  deviceInfo   Json? // Device fingerprinting
+  metadata     Json?
+  description  String            @default("Security event")
+  errorCode    String?
+  errorMessage String?
+  mitigated    Boolean           @default(false)
+  mitigatedBy  String?
+  mitigatedAt  DateTime?
+  createdAt    DateTime          @default(now())
+  timestamp    DateTime          @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([eventType, createdAt])
+  @@index([severity, createdAt])
+  @@index([userId, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([riskScore])
+  @@map("security_events")
+}
+
+model ThreatDetection {
+  id             String     @id @default(cuid())
+  threatType     ThreatType
+  confidence     Float // 0.0 - 1.0 confidence score
+  userId         String?
+  ipAddress      String?
+  indicators     Json // IOCs (Indicators of Compromise)
+  blocked        Boolean    @default(false)
+  falsePositive  Boolean    @default(false)
+  investigated   Boolean    @default(false)
+  investigatedBy String?
+  investigatedAt DateTime?
+  notes          String?
+  createdAt      DateTime   @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([threatType, createdAt])
+  @@index([confidence])
+  @@index([blocked])
+  @@map("threat_detections")
+}
+
+model EmergencyAccessCode {
+  id        String    @id @default(uuid())
+  userId    String
+  code      String
+  issuedBy  String
+  reason    String
+  expiresAt DateTime
+  isUsed    Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model ComplianceAudit {
+  id               String           @id @default(cuid())
+  auditType        ComplianceType
+  resourceType     String // User, File, System, etc.
+  resourceId       String?
+  complianceStatus ComplianceStatus @default(COMPLIANT)
+  findings         Json? // Detailed findings
+  remediation      String?
+  auditedBy        String?
+  auditedAt        DateTime         @default(now())
+  createdAt        DateTime         @default(now())
+
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  @@index([auditType, auditedAt])
+  @@index([complianceStatus])
+  @@map("compliance_audits")
+}
+
+model TokenMetadata {
+  id                String    @id @default(uuid())
+  jti               String    @unique
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  tokenType         String
+  issuedAt          DateTime
+  expiresAt         DateTime
+  deviceFingerprint String?
+  isActive          Boolean   @default(true)
+  revokedAt         DateTime?
+  revokeReason      String?
+  expiredAt         DateTime?
+  updatedAt         DateTime? @updatedAt
+}
+
+model TokenBlacklist {
+  id        String   @id @default(uuid())
+  jti       String   @unique
+  revokedAt DateTime
+  reason    String
+  expiresAt DateTime
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  name        String
+  hashedKey   String    @unique
+  permissions String[]
+  expiresAt   DateTime
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastUsedAt  DateTime?
+  usageCount  Int       @default(0)
+}
+
+model OneTimeToken {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  hashedToken String    @unique
+  action      String
+  metadata    Json
+  expiresAt   DateTime
+  isUsed      Boolean   @default(false)
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+  PASSWORD_CHANGE
+  ACCOUNT_LOCKED
+  SUSPICIOUS_LOGIN
+  MULTIPLE_FAILED_LOGINS
+  UNUSUAL_LOCATION
+  DEVICE_CHANGE
+  PERMISSION_ESCALATION
+  UNAUTHORIZED_ACCESS
+  DATA_BREACH_ATTEMPT
+  MALWARE_DETECTED
+  PHISHING_ATTEMPT
+  BRUTE_FORCE_ATTACK
+  SQL_INJECTION_ATTEMPT
+  XSS_ATTEMPT
+  CSRF_ATTEMPT
+  RATE_LIMIT_EXCEEDED
+  INVALID_TOKEN
+  EXPIRED_SESSION
+  ACCOUNT_TAKEOVER
+  DATA_EXFILTRATION
+  PRIVILEGE_ABUSE
+  POLICY_VIOLATION
+  TWO_FACTOR_FAILURE
+  LOGIN_ERROR
+  TOKEN_REFRESH_ERROR
+  TOKEN_REFRESHED
+  LINK_CREATED
+  LOGIN
+  SUSPICIOUS_ACTIVITY
+}
+
+enum SecuritySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SecurityOutcome {
+  SUCCESS
+  FAILURE
+  BLOCKED
+  QUARANTINED
+}
+
+enum ThreatType {
+  MALWARE
+  PHISHING
+  BRUTE_FORCE
+  DDoS
+  INSIDER_THREAT
+  DATA_EXFILTRATION
+  PRIVILEGE_ESCALATION
+  ACCOUNT_TAKEOVER
+  SUSPICIOUS_BEHAVIOR
+  ANOMALOUS_ACTIVITY
+}
+
+enum ComplianceType {
+  GDPR
+  HIPAA
+  SOC2
+  ISO27001
+  PCI_DSS
+  NIST
+  DATA_RETENTION
+  PRIVACY_AUDIT
+  SECURITY_AUDIT
+}
+
+enum ComplianceStatus {
+  COMPLIANT
+  NON_COMPLIANT
+  PARTIALLY_COMPLIANT
+  UNDER_REVIEW
+  REMEDIATION_REQUIRED
+}
+
+enum LoginMethod {
+  PASSWORD
+  TWO_FACTOR
+  SSO
+  LDAP
+  OAUTH
+  API_KEY
+  BIOMETRIC
+}
+
+enum LogoutReason {
+  USER_INITIATED
+  SESSION_TIMEOUT
+  SECURITY_POLICY
+  ADMIN_ACTION
+  SUSPICIOUS_ACTIVITY
+  DEVICE_CHANGE
+}
+
+enum FileAction {
+  VIEW
+  DOWNLOAD
+  UPLOAD
+  DELETE
+  RENAME
+  MOVE
+  COPY
+  SHARE
+  UNSHARE
+  PERMISSION_CHANGE
+  VERSION_CREATE
+  COMMENT_ADD
+  THUMBNAIL_GENERATE
+  VIRUS_SCAN
+  CONTENT_ANALYZE
+}
+
+enum ShareAction {
+  VIEW
+  DOWNLOAD
+  COMMENT
+  SHARE_CREATED
+  SHARE_ACCESSED
+  SHARE_EXPIRED
+  SHARE_REVOKED
+  PASSWORD_ATTEMPT
+  PERMISSION_DENIED
+}
+
+enum AccessMethod {
+  WEB
+  MOBILE_APP
+  DESKTOP_APP
+  API
+  WEBDAV
+  FTP
+  SFTP
+  CLI
+}
+
+enum SecurityScanType {
+  VIRUS_SCAN
+  MALWARE_SCAN
+  CONTENT_ANALYSIS
+  VULNERABILITY_SCAN
+  COMPLIANCE_SCAN
+  PRIVACY_SCAN
+  DATA_CLASSIFICATION
+}
+
+enum ScanStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+  QUARANTINED
+}
+
+enum RiskLevel {
+  VERY_LOW
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+  CRITICAL
+}
+
+enum VirusScanResult {
+  CLEAN
+  INFECTED
+  SUSPICIOUS
+  ENCRYPTED
+  CORRUPTED
+  TIMEOUT
+  ERROR
+}
+
+model FileAccessLog {
+  id               String       @id @default(cuid())
+  fileId           String
+  userId           String?
+  action           FileAction
+  ipAddress        String?
+  userAgent        String?
+  geolocation      Json?
+  success          Boolean      @default(true)
+  errorMessage     String?
+  duration         Int? // Request duration in ms
+  bytesTransferred BigInt?
+  accessMethod     AccessMethod @default(WEB)
+  deviceInfo       Json?
+  referrer         String?
+  createdAt        DateTime     @default(now())
+
+  file File  @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([fileId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action])
+  @@index([ipAddress])
+  @@map("file_access_logs")
+}
+
+model FileSecurity {
+  id              String           @id @default(cuid())
+  fileId          String
+  scanType        SecurityScanType
+  status          ScanStatus       @default(PENDING)
+  findings        Json? // Detailed security findings
+  riskLevel       RiskLevel        @default(LOW)
+  recommendations String[]         @default([])
+  scannedAt       DateTime         @default(now())
+  scanDuration    Int? // Scan duration in seconds
+  scannerVersion  String?
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId])
+  @@index([scanType, status])
+  @@index([riskLevel])
+  @@map("file_security")
+}
+
+// ==================== SHARING & COLLABORATION ====================
+
+model SharedFile {
+  id         String          @id @default(uuid())
+  fileId     String
+  userId     String
+  sharedBy   String
+  shareType  ShareType       @default(FILE)
+  permission SharePermission @default(READ)
+
+  // Security settings
+  password            String?
+  isPasswordProtected Boolean @default(false)
+
+  // Access control
+  allowDownload   Boolean @default(true)
+  allowPrint      Boolean @default(false)
+  allowCopy       Boolean @default(false)
+  allowComment    Boolean @default(false)
+  watermark       Boolean @default(false)
+  requireEmail    Boolean @default(false)
+  requireApproval Boolean @default(false)
+
+  // Limits & expiration
+  expiresAt     DateTime?
+  maxDownloads  Int?
+  downloadCount Int       @default(0)
+  maxViews      Int?
+  viewCount     Int       @default(0)
+
+  // Tracking
+  lastAccessedAt DateTime?
+  accessCount    Int       @default(0)
+
+  // Status
+  status   ShareStatus @default(PENDING)
+  isActive Boolean     @default(true)
+  isPublic Boolean     @default(false)
+
+  // Metadata
+  message       String?
+  description   String?
+  shareToken    String? @unique
+  notifyByEmail Boolean @default(false)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  file            File             @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shareUsers      ShareUser[]
+  shareComments   ShareComment[]
+  shareAccessLogs ShareAccessLog[]
+  activityLogs    ActivityLog[]
+
+  // Add to SharedFile model:
+  approvals ShareApproval[]
+
+  @@index([fileId])
+  @@index([userId])
+  @@index([shareToken])
+  @@index([status, isActive])
+  @@index([expiresAt])
+  @@map("shared_files")
+}
+
+model ShareAccessLog {
+  id               String       @id @default(cuid())
+  sharedFileId     String?
+  fileId           String
+  userId           String?
+  linkId           String?
+  action           ShareAction
+  ipAddress        String?
+  userAgent        String?
+  geolocation      Json?
+  deviceInfo       Json?
+  country          String?
+  referrer         String?
+  success          Boolean      @default(true)
+  errorMessage     String?
+  duration         Int? // Request duration in ms
+  bytesTransferred BigInt?
+  downloadCount    Int          @default(0)
+  accessMethod     AccessMethod @default(WEB)
+  accessedAt       DateTime     @default(now())
+  createdAt        DateTime     @default(now())
+  sharedFile       SharedFile?  @relation(fields: [sharedFileId], references: [id])
+  file             File         @relation(fields: [fileId], references: [id])
+  user             User?        @relation(fields: [userId], references: [id])
+  link             FileLink?    @relation(fields: [linkId], references: [id])
+  ShareLink        ShareLink?   @relation(fields: [shareLinkId], references: [id])
+  shareLinkId      String?
+
+  @@index([sharedFileId, accessedAt])
+  @@index([fileId, accessedAt])
+  @@index([userId, accessedAt])
+  @@index([action])
+  @@index([ipAddress])
+  @@map("share_access_logs")
+}
+
+// ==================== METRICS & ANALYTICS ====================
+
+model UserMetrics {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime @db.Date
+
+  // Storage metrics
+  storageUsed     BigInt @default(0)
+  filesCreated    Int    @default(0)
+  filesDeleted    Int    @default(0)
+  filesShared     Int    @default(0)
+  filesDownloaded Int    @default(0)
+
+  // Activity metrics
+  loginCount    Int @default(0)
+  activeMinutes Int @default(0)
+  pageViews     Int @default(0)
+  apiCalls      Int @default(0)
+
+  // Sharing metrics
+  sharesCreated         Int @default(0)
+  sharesAccessed        Int @default(0)
+  collaborationsStarted Int @default(0)
+  commentsPosted        Int @default(0)
+
+  // Security metrics
+  securityEvents     Int @default(0)
+  failedLogins       Int @default(0)
+  suspiciousActivity Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([date])
+  @@map("user_metrics")
+}
+
+model SystemMetrics {
+  id   String   @id @default(cuid())
+  date DateTime @db.Date
+
+  // System performance
+  cpuUsage    Float @default(0)
+  memoryUsage Float @default(0)
+  diskUsage   Float @default(0)
+  networkIO   Float @default(0)
+  uptime      Float @default(0)
+
+  // Storage metrics
+  totalStorage     BigInt @default(0)
+  usedStorage      BigInt @default(0)
+  availableStorage BigInt @default(0)
+  totalFiles       Int    @default(0)
+  totalUsers       Int    @default(0)
+  activeUsers      Int    @default(0)
+
+  // Activity metrics
+  totalLogins    Int @default(0)
+  totalUploads   Int @default(0)
+  totalDownloads Int @default(0)
+  totalShares    Int @default(0)
+  apiRequests    Int @default(0)
+
+  // Security metrics
+  securityEvents  Int @default(0)
+  threatsDetected Int @default(0)
+  threatsBlocked  Int @default(0)
+  failedLogins    Int @default(0)
+
+  // Error metrics
+  errorRate    Float @default(0)
+  errorCount   Int   @default(0)
+  responseTime Float @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@unique([date])
+  @@index([date])
+  @@map("system_metrics")
+}
+
+// ==================== REMAINING MODELS ====================
+
+model EmailAnalytics {
+  id         String   @id @default(cuid())
+  messageId  String?
+  recipients String
+  subject    String
+  status     String
+  emailType  String
+  error      String?  @db.Text
+  metadata   Json?
+  sentAt     DateTime @default(now())
+
+  @@index([emailType, sentAt])
+  @@index([status, sentAt])
+  @@map("email_analytics")
+}
+
+model EmailQueue {
+  id         String   @id @default(cuid())
+  to         String
+  cc         String?
+  bcc        String?
+  subject    String
+  html       String   @db.Text
+  text       String?  @db.Text
+  priority   String   @default("normal")
+  sendAt     DateTime
+  retries    Int      @default(0)
+  maxRetries Int      @default(3)
+  status     String   @default("pending")
+  messageId  String?
+  error      String?  @db.Text
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status, sendAt])
+  @@index([priority])
+  @@map("email_queue")
+}
+
+model Activity {
+  id          String       @id @default(uuid())
+  userId      String
+  type        ActivityType
+  description String
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Document   Document? @relation(fields: [documentId], references: [id])
+  documentId String?
+
+  @@index([userId, type])
+  @@index([createdAt])
+  @@map("activities")
+}
+
+model FileActivity {
+  id          String       @id @default(uuid())
+  fileId      String
+  userId      String
+  type        ActivityType
+  description String
+  oldValue    String?
+  newValue    String?
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([fileId, type])
+  @@index([userId, type])
+  @@index([createdAt])
+  @@map("file_activities")
+}
+
+model ActivityLog {
+  id           String       @id @default(uuid())
+  userId       String?
+  fileId       String?
+  sharedFileId String?
+  activityType ActivityType
+  details      Json?
+  metadata     Json?
+  ipAddress    String?
+  userAgent    String?
+  geolocation  Json?
+  deviceInfo   Json?
+  originalName String?
+  deviceType   String?
+  os           String?
+  browser      String?
+  country      String?
+  countryCode  String?
+  duration     Int?
+  success      Boolean      @default(true)
+  errorCode    String?
+  errorMessage String?
+  timestamp    DateTime     @default(now())
+  createdAt    DateTime     @default(now())
+
+  user       User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  file       File?       @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  sharedFile SharedFile? @relation(fields: [sharedFileId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([fileId, createdAt])
+  @@index([activityType, createdAt])
+  @@index([country, countryCode])
+  @@map("activity_logs")
+}
+
+model AuditLog {
+  id          String  @id @default(uuid())
+  userId      String?
+  action      String
+  resource    String
+  resourceId  String?
+  oldValues   Json?
+  newValues   Json?
+  details     Json?
+  ipAddress   String?
+  severity    String?
+  description String?
+  metadata    String?
+  //  severity  String?
+
+  userAgent    String?
+  successful   Boolean  @default(true)
+  errorMessage String?
+  timestamp    DateTime @default(now())
+  createdAt    DateTime @default(now())
+  eventType    String?
+  user         User?    @relation(fields: [userId], references: [id])
+
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model FileVersion {
+  id            String    @id @default(uuid())
+  fileId        String
+  version       Int
+  versionNumber Int       @default(1)
+  filePath      String
+  fileName      String?
+  fileSize      BigInt
+  checksum      String
+  hash          String?
+  mimeType      String?
+  comment       String?
+  changes       String?
+  changeType    String?
+  isCurrent     Boolean   @default(false)
+  createdBy     String
+  modifiedById  String
+  createdAt     DateTime  @default(now())
+  modifiedAt    DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  file           File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  modifiedByUser User @relation(fields: [modifiedById], references: [id])
+
+  @@unique([fileId, versionNumber])
+  @@unique([fileId, version])
+  @@index([fileId])
+  @@index([createdAt])
+  @@map("file_versions")
+}
+
+model ShareUser {
+  id           String         @id @default(uuid())
+  sharedFileId String
+  userId       String
+  permission   FilePermission @default(VIEW)
+  status       ShareStatus    @default(PENDING)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  accessedAt   DateTime?
+  sharedFile   SharedFile     @relation(fields: [sharedFileId], references: [id], onDelete: Cascade)
+  user         User           @relation("UserSharedFiles", fields: [userId], references: [id])
+
+  @@unique([sharedFileId, userId])
+  @@index([userId])
+  @@map("share_users")
+}
+
+model ShareApproval {
+  id              String         @id @default(uuid())
+  status          ApprovalStatus @default(PENDING)
+  requestMessage  String?
+  responseMessage String?
+  approvalToken   String?        @unique
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  processedAt     DateTime?
+  // Relations
+  sharedFileId    String
+  sharedFile      SharedFile     @relation(fields: [sharedFileId], references: [id], onDelete: Cascade)
+
+  requesterId String
+  requester   User   @relation("ApprovalRequester", fields: [requesterId], references: [id])
+
+  approverId String? // File owner who can approve
+  approver   User?   @relation("ApprovalApprover", fields: [approverId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sharedFileId, requesterId])
+  @@index([status])
+  @@index([requesterId])
+  @@map("share_approvals")
+}
+
+model FileLink {
+  id               String         @id @default(uuid())
+  fileId           String
+  token            String         @unique
+  password         String?
+  passwordHash     String?
+  city             String?
+  description      String?
+  filePath         String? // Added field to store file path for sharing
+  expiresAt        DateTime?
+  maxDownloads     Int?
+  downloadCount    Int            @default(0)
+  maxViews         Int?
+  viewCount        Int            @default(0)
+  accessCount      Int            @default(0)
+  isActive         Boolean        @default(true)
+  permission       FilePermission @default(VIEW)
+  linkType         LinkType       @default(PUBLIC)
+  allowDownload    Boolean        @default(true)
+  requirePassword  Boolean        @default(false)
+  allowComments    Boolean        @default(false)
+  currentDownloads Int?
+  notifyOnAccess   Boolean        @default(false)
+  shareType        ShareType      @default(LINK)
+
+  trackAccess    Boolean   @default(true)
+  lastAccessedAt DateTime?
+  createdBy      String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  file       File             @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  creator    User             @relation(fields: [createdBy], references: [id])
+  accessLogs ShareAccessLog[]
+
+  @@index([token])
+  @@index([fileId])
+  @@index([isActive, expiresAt])
+  @@map("file_links")
+}
+
+model FilePermissionModel {
+  id        String         @id @default(cuid())
+  fileId    String
+  userId    String
+  role      PermissionRole @default(VIEWER)
+  canRead   Boolean        @default(false)
+  canWrite  Boolean        @default(false)
+  canDelete Boolean        @default(false)
+  canShare  Boolean        @default(false)
+  canMove   Boolean        @default(false)
+  canCopy   Boolean        @default(false)
+  grantedBy String?
+  grantedAt DateTime       @default(now())
+  expiresAt DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  file File @relation("FileModelPermissions", fields: [fileId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, userId])
+  @@index([userId])
+  @@index([fileId])
+  @@map("file_permissions")
+}
+
+model Collaborator {
+  id         String          @id @default(uuid())
+  fileId     String
+  userId     String
+  documentId String?
+  permission SharePermission @default(READ)
+  addedBy    String
+  addedAt    DateTime        @default(now())
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, userId])
+  @@map("collaborators")
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  description String?
+  permissions RolePermission[]
+  users       UserRole[]
+}
+
+model UserPermission {
+  id          String           @id @default(uuid())
+  name        String           @unique // e.g., 'user:read', 'user:create', 'product:edit'
+  description String?
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  id           String         @id @default(uuid())
+  roleId       String
+  permissionId String
+  role         Role           @relation(fields: [roleId], references: [id])
+  permission   UserPermission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId]) // Ensure a role can only have a permission once
+}
+
+model Transfer {
+  id              String   @id @default(cuid())
+  userId          String? // Optional: User who created the transfer
+  title           String?
+  message         String?
+  senderEmail     String?
+  recipientEmail  String?
+  password        String? // Hashed password
+  expirationDate  DateTime
+  downloadLimit   Int? // null = unlimited
+  trackingEnabled Boolean  @default(false)
+  shareLink       String   @unique
+  totalSize       BigInt
+  storagePath     String // Local directory path
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  files     File[]
+  downloads Download[]
+
+  @@index([shareLink])
+  @@index([expirationDate])
+  @@index([userId])
+}
+
+model Download {
+  id           String   @id @default(cuid())
+  transferId   String
+  ipAddress    String
+  userAgent    String?
+  location     String? // Geolocation data
+  downloadedAt DateTime @default(now())
+
+  transfer Transfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  @@index([transferId])
+  @@index([downloadedAt])
+}
+
+model PendingInvitation {
+  id         String             @id @default(cuid())
+  email      String
+  documentId String?
+  role       CollaborationRole?
+  token      String             @unique
+  invitedBy  String?
+  message    String?
+  expiresAt  DateTime
+  createdAt  DateTime           @default(now())
+
+  // Relations
+  document Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  inviter  User?     @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@map("pending_invitations")
+}
+
+model Comment {
+  id         String    @id @default(uuid())
+  fileId     String?
+  userId     String?
+  documentId String?
+  content    String?
+  isResolved Boolean   @default(false)
+  position   Json?
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  file     File?          @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user     User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document?      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  replies  CommentReply[]
+
+  @@map("comments")
+}
+
+model CommentReply {
+  id        String   @id @default(cuid())
+  commentId String
+  authorId  String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("comment_replies")
+}
+
+model ShareComment {
+  id           String   @id @default(uuid())
+  fileId       String
+  userId       String
+  sharedFileId String
+  content      String
+  author       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  file       File       @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id])
+  sharedFile SharedFile @relation(fields: [sharedFileId], references: [id])
+}
+
+model RateLimitWhitelist {
+  id        String    @id @default(uuid())
+  key       String    @unique
+  expiresAt DateTime?
+  createdAt DateTime
+}
+
+enum CollaborationRole {
+  OWNER
+  EDITOR
+  COMMENTER
+  VIEWER
+}
+
+// Missing enums for file system
+enum FileType {
+  FILE
+  FOLDER
+}
+
+enum ShareType {
+  PUBLIC
+  PRIVATE
+  LINK
+  FILE
+  DOCUMENT
+}
+
+enum SharePermission {
+  READ
+  WRITE
+  ADMIN
+  VIEW
+}
+
+enum ShareStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  REVOKED
+  DISABLED
+}
+
+enum FilePermission {
+  VIEW
+  EDIT
+  ADMIN
+  SUPER_ADMIN
+  FULL_ACCESS
+  COMMENT
+}
+
+enum LinkType {
+  PUBLIC
+  PRIVATE
+  PASSWORD
+  TEMPORARY
+}
+
+enum LinkAccess {
+  OPEN
+  RESTRICTED
+  PRIVATE
+}
+
+enum ActivityType {
+  FILE_CREATED
+  FILE_UPDATED
+  FILE_DELETED
+  FILE_MOVED
+  FILE_COPIED
+  FILE_RENAMED
+  FILE_SHARED
+  FILE_UNSHARED
+  FILE_DOWNLOADED
+  FILE_VIEWED
+  FOLDER_CREATED
+  FOLDER_DELETED
+  FOLDER_MOVED
+  FOLDER_RENAMED
+  COMMENT_ADDED
+  COMMENT_DELETED
+  USER_LOGIN
+  USER_LOGOUT
+  USER_REGISTERED
+  USER_UPDATED
+  PASSWORD_CHANGED
+  PERMISSION_CHANGED
+  SHARE_CREATED
+  SHARE_ACCESSED
+  SHARE_EXPIRED
+  COLLABORATION_STARTED
+  COLLABORATION_ENDED
+  DOCUMENT_CREATED
+  DOCUMENT_UPDATED
+  DOCUMENT_DELETED
+  DOCUMENT_SHARED
+  VERSION_CREATED
+  SECURITY_EVENT
+  SYSTEM_EVENT
+  AUDIT_EVENT
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PermissionRole {
+  VIEWER
+  EDITOR
+  OWNER
+  ADMIN
+  SUPER_ADMIN
+}
+
+// Missing models
+model UserEncryptionKey {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  keyData   String // Encrypted key data
+  keyType   String   @default("AES-256")
+  salt      String
+  iv        String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_encryption_keys")
+}
+
+// model OtpCode {
+//   id          String   @id @default(uuid())
+//   userId      String
+//   code        String
+//   type        OtpType
+//   purpose     String?
+//   expiresAt   DateTime
+//   isUsed      Boolean  @default(false)
+//   attempts    Int      @default(0)
+//   maxAttempts Int      @default(3)
+//   metadata    Json?
+//   createdAt   DateTime @default(now())
+
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@index([userId, type])
+//   @@index([code])
+//   @@map("otp_codes")
+// }
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  isUsed    Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model TwoFactorToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String
+  type      String   @default("TOTP")
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("two_factor_tokens")
+}
+
+model Spreadsheet {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  title     String   @default("Untitled Spreadsheet")
+  cells     Json?    @default("{}")
+  metadata  Json?    @default("{}")
+  isPublic  Boolean  @default(false)
+  ownerId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastSaved DateTime @default(now())
+
+  // Relations
+  owner         User?                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  collaborators SpreadsheetAccess[]
+  versions      SpreadsheetVersion[]
+
+  @@index([token])
+  @@index([ownerId])
+  @@map("spreadsheets")
+}
+
+model SpreadsheetAccess {
+  id            String         @id @default(uuid())
+  spreadsheetId String
+  userId        String
+  permission    FilePermission @default(VIEW)
+  grantedBy     String?
+  grantedAt     DateTime       @default(now())
+  expiresAt     DateTime?
+
+  spreadsheet Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([spreadsheetId, userId])
+  @@index([userId])
+  @@map("spreadsheet_access")
+}
+
+model SpreadsheetVersion {
+  id            String   @id @default(uuid())
+  spreadsheetId String
+  versionNumber Int
+  cells         Json
+  metadata      Json?
+  createdBy     String
+  createdAt     DateTime @default(now())
+
+  spreadsheet Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+  creator     User        @relation(fields: [createdBy], references: [id])
+
+  @@unique([spreadsheetId, versionNumber])
+  @@index([spreadsheetId])
+  @@map("spreadsheet_versions")
+}
