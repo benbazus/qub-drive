@@ -299,3 +299,8 @@ tramp
 
 # Documentation files
 *.md
+
+# AI Assistant directories
+.agent/
+.claude/
+.kiro/
