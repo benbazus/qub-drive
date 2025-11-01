@@ -303,3 +303,22 @@ tramp
 # AI Assistant directories
 .agent/
 .claude/
+.kiro/
+*/.claude/
+*/.kiro/
+
+# AI Assistant files
+*.claude
+*.kiro
+# AI Assistant cache
+.cache/
+
+# AI Assistant logs
+*.log
+# AI Assistant backups
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*.temp
